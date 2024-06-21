@@ -6,10 +6,11 @@ from django.contrib.auth import get_user_model
 class RegistrationSerializer(serializers.ModelSerializer):
 
     password2 = serializers.CharField(style={"input_type": "password"})
+    wallet = serializers.CharField(max_length=42, write_only=True)
 
     class Meta:
         model = get_user_model()
-        fields = ("first_name", "last_name", "email", "password", "password2")
+        fields = ("first_name", "last_name", "email", "wallet", "password", "password2")
         extra_kwargs = {
             "password": {"write_only": True},
             "password2": {"write_only": True}
@@ -30,6 +31,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
                 {"password": "Passwords do not match!"})
 
         user.set_password(password)
+        user._wallet = self.validated_data["wallet"]
         user.save()
 
         return user
@@ -42,6 +44,11 @@ class LoginSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    balance = serializers.SerializerMethodField()
+
     class Meta:
         model = get_user_model()
-        fields = ("id", "email", "is_staff", "first_name", "last_name")
+        fields = ("id", "email", "is_staff", "first_name", "last_name", "balance")
+
+    def get_balance(self, obj):
+        return getattr(obj, 'balance', None)

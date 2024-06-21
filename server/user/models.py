@@ -68,6 +68,7 @@ class Profile(models.Model):
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
     image = models.ImageField(upload_to='profile/', default='media/profile/avatar.png')
     about = models.TextField(blank=True, null=True)
+    wallet = models.CharField(max_length=42, default="")
 
     def __str__(self):
         return f'{self.user.email} Profile'
@@ -75,7 +76,10 @@ class Profile(models.Model):
 @receiver(post_save, sender=get_user_model())
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        Profile.objects.create(user=instance)
+        Profile.objects.create(
+            user=instance,
+            wallet=getattr(instance, '_wallet', '')
+        )
 
 @receiver(post_save, sender=get_user_model())
 def save_user_profile(sender, instance, **kwargs):

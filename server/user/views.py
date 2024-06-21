@@ -3,7 +3,7 @@ from django.conf import settings
 from django.middleware import csrf
 from rest_framework import exceptions as rest_exceptions, response, decorators as rest_decorators, permissions as rest_permissions
 from rest_framework_simplejwt import tokens, views as jwt_views, serializers as jwt_serializers, exceptions as jwt_exceptions
-from user import serializers, models
+from user import serializers, models, helpers
 
 
 def get_user_tokens(user):
@@ -123,6 +123,10 @@ class CookieTokenRefreshView(jwt_views.TokenRefreshView):
 def user(request):
     try:
         user = models.User.objects.get(id=request.user.id)
+        profile = models.Profile.objects.get(user=user)
+
+        balance = helpers.get_eth_balance(address=profile.wallet)
+        user.balance = balance
     except models.User.DoesNotExist:
         return response.Response(status_code=404)
 
